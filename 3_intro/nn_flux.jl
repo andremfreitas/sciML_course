@@ -63,6 +63,26 @@ applychain(fs::Tuple, x) = applychain(tail(fs), first(fs)(x))
 (c::Chain)(x) = applychain(c.layers, x)
 =#
 
+# Note: The ... is known that the slurp operator, which allows for "slurping up"
+# multiple arguments into a single object
+
+# Note2: everything (including functions) boils down to structs in julia
 
 
+#############
+## TRAINING #
+#############
 
+# "Training" a neural network is simply the process of finding weights that minimize a loss function.
+
+NN = Chain(Dense(10 => 32,tanh),
+           Dense(32 => 32,tanh),
+           Dense(32 => 5))
+loss() = sum(abs2,sum(abs2,NN(rand(10)).-1) for i in 1:100)
+
+# 'params' is a helper function on Chain which recursively gathers all of the defining parameters. 
+p = Flux.params(NN)
+
+Flux.train!(loss, p, Iterators.repeated((), 10000), ADAM(0.1))
+
+println(loss())
