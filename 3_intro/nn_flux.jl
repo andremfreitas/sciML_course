@@ -25,3 +25,44 @@ simpleNN(x) = W[3]*tanh.(W[2]*tanh.(W[1]*x + b[1]) + b[2]) + b[3]
 
 using InteractiveUtils
 println(@which Dense(10 => 32,tanh))    # @which returns some function info and the source code location
+
+#=# ########################################################################
+
+# Source code for Dense
+
+struct Dense{F, M<:AbstractMatrix, B}
+    weight::M
+    bias::B
+    σ::F
+    function Dense(W::M, bias = true, σ::F = identity) where {M<:AbstractMatrix, F}
+      b = create_bias(W, bias, size(W,1))
+      new{F,M,typeof(b)}(W, b, σ)
+    end
+  end
+  
+function Dense((in, out)::Pair{<:Integer, <:Integer}, σ = identity;
+                 init = glorot_uniform, bias = true)
+    Dense(init(out, in), bias, σ)
+  end
+=#  #######################################################################3
+
+# So okay, Dense objects are just functions that have weight and
+#  bias matrices inside of them. Now what does *Chain* do?
+
+println(@which Chain(1,2,3))
+
+#=
+struct Chain{T<:Tuple}
+  layers::T
+  Chain(xs...) = new{typeof(xs)}(xs)
+end
+
+applychain(::Tuple{}, x) = x
+applychain(fs::Tuple, x) = applychain(tail(fs), first(fs)(x))
+
+(c::Chain)(x) = applychain(c.layers, x)
+=#
+
+
+
+
