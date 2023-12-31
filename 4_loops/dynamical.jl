@@ -20,3 +20,6 @@ end
 f(u,p) = u^2 - p*u
 
 println(solve_system(f,1.0,0.25,1000))
+println(solve_system(f,1.22,0.25,1000))
+println(solve_system(f,1.25,0.25,1000))
+println(solve_system(f,1.251,0.25,20))
