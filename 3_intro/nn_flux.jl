@@ -18,3 +18,10 @@ NN3 = Chain(Dense(10 => 32,x->x^2),
             Dense(32 => 5))
 println(NN3(Float32.(rand(10))))
 
+# Digging into the construction of a NN library
+W = [randn(32,10),randn(32,32),randn(5,32)]
+b = [zeros(32),zeros(32),zeros(5)]
+simpleNN(x) = W[3]*tanh.(W[2]*tanh.(W[1]*x + b[1]) + b[2]) + b[3]
+
+using InteractiveUtils
+println(@which Dense(10 => 32,tanh))    # @which returns some function info and the source code location
