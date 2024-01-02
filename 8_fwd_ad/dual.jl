@@ -123,3 +123,77 @@ println(exp(fd))
 
 """
 
+
+
+
+"""
+ Implementation of higher dimensional forward mode AD
+ -----------------------------------
+ We can implement derivatives of functions f:Rn→R
+ by adding several independent partial derivative components to our dual numbers.
+
+We can think of these as ϵ
+ perturbations in different directions, which satisfy ϵ2i=ϵiϵj=0
+, and we will call ϵ
+ the vector of all perturbations. Then we have
+
+f(a+ϵ)=f(a)+∇f(a)⋅ϵ+O(ϵ2),
+where a∈Rn
+ and ∇f(a)
+ is the gradient of f
+ at a
+, i.e. the vector of partial derivatives in each direction. ∇f(a)⋅ϵ
+ is the directional derivative of f
+ in the direction ϵ
+.
+
+We now proceed similarly to the univariate case:
+
+(f+g)(a+ϵ)=[f(a)+g(a)]+[∇f(a)+∇g(a)]⋅ϵ
+(f⋅g)(a+ϵ)=[f(a)+∇f(a)⋅ϵ][g(a)+∇g(a)⋅ϵ]=f(a)g(a)+[f(a)∇g(a)+g(a)∇f(a)]⋅ϵ
+
+We will use the StaticArrays.jl package for efficient small vectors:
+"""
+
+using StaticArrays
+
+struct MultiDual{N,T}
+    val::T
+    derivs::SVector{N,T}
+end
+
+import Base: +, *
+
+function +(f::MultiDual{N,T}, g::MultiDual{N,T}) where {N,T}
+    return MultiDual{N,T}(f.val + g.val, f.derivs + g.derivs)
+end
+
+function *(f::MultiDual{N,T}, g::MultiDual{N,T}) where {N,T}
+    return MultiDual{N,T}(f.val * g.val, f.val .* g.derivs + g.val .* f.derivs)
+end
+
+gcubic(x, y) = x*x*y + x + y
+
+(a, b) = (1.0, 2.0)
+
+xx = MultiDual(a, SVector(1.0, 0.0))
+yy = MultiDual(b, SVector(0.0, 1.0))
+
+println(gcubic(xx, yy))
+
+# We can calculate the Jacobian of a function Rn→Rm
+  #  by applying this to each component function:
+  
+fsvec(x, y) = SVector(x*x + y*y , x + y)
+
+println(fsvec(xx, yy))
+
+# It would be possible (and better for performance in many cases) to store all of the partials in a matrix instead. => Jacobian
+
+"""
+Forward-mode AD is implemented in a clean and efficient way in the ForwardDiff.jl package:
+"""
+
+using ForwardDiff
+
+ForwardDiff.gradient( xx -> ( (x, y) = xx; x^2 * y + x*y ), [1, 2])
